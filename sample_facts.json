@@ -1,0 +1,18 @@
+[
+    {
+        "entity": "Taj Mahal",
+        "fact": "The Taj Mahal is an ivory-white marble mausoleum on the right bank of the river Yamuna in Agra, Uttar Pradesh, India."
+    },
+    {
+        "entity": "Eiffel Tower",
+        "fact": "The Eiffel Tower is a wrought-iron lattice tower on the Champ de Mars in Paris, France."
+    },
+    {
+        "entity": "Charminar",
+        "fact": "The Charminar is a mosque and monument located in Hyderabad, Telangana, India, constructed in 1591."
+    },
+    {
+        "entity": "Golden Gate Bridge",
+        "fact": "The Golden Gate Bridge is a suspension bridge spanning the Golden Gate, the one-mile-wide strait connecting San Francisco Bay and the Pacific Ocean."
+    }
+]

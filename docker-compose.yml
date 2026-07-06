@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: omnivision-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./.env:/app/.env
+      - ./knowledge_base:/app/knowledge_base
+      - ./static:/app/static
+      - hf_cache:/root/.cache/huggingface
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  frontend:
+    image: python:3.10-slim
+    container_name: omnivision-frontend
+    working_dir: /app/frontend
+    volumes:
+      - .:/app
+    command: bash -c "pip install streamlit requests && streamlit run app.py --server.port 8501"
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://backend:8000/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  hf_cache:
