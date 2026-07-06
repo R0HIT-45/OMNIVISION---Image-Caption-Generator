@@ -5,13 +5,26 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     APP_NAME: str = "OmniVision API"
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    PROFILE: str = os.getenv("PROFILE", "development")
     FASTAPI_HOST: str = os.getenv("FASTAPI_HOST", "0.0.0.0")
     FASTAPI_PORT: int = int(os.getenv("FASTAPI_PORT", 8000))
     API_BASE_URL: str = os.getenv("API_BASE_URL", "http://localhost:8000/api/v1")
     
     # AI Config
-    BLIP_MODEL: str = os.getenv("BLIP_MODEL", "Salesforce/blip2-opt-2.7b")
+    @property
+    def BLIP_MODEL(self) -> str:
+        # User-overridden config
+        if os.getenv("BLIP_MODEL"):
+            return os.getenv("BLIP_MODEL")
+        # Profile-based defaults
+        if self.PROFILE == "development":
+            return "Salesforce/blip-image-captioning-base"
+        elif self.PROFILE == "demo":
+            return "Salesforce/blip2-opt-2.7b"
+        elif self.PROFILE == "production":
+            return "Salesforce/blip2-opt-2.7b" # Placeholder for future models
+        return "Salesforce/blip-image-captioning-base"
+
     CLIP_MODEL: str = os.getenv("CLIP_MODEL", "openai/clip-vit-base-patch32")
     TRANSLATION_MODEL: str = os.getenv("TRANSLATION_MODEL", "ai4bharat/indictrans2-en-indic-dist-200M")
     TTS_MODEL: str = os.getenv("TTS_MODEL", "tts_models/multilingual/multi-dataset/xtts_v2")

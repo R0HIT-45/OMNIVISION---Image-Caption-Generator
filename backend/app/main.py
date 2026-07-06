@@ -14,6 +14,10 @@ logger = logging.getLogger("omnivision")
 
 settings = get_settings()
 
+# Validate Configuration (Fails fast if invalid)
+from app.config.config_validator import validate_configuration
+validate_configuration()
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="Enterprise AI Image Captioning and Narration Platform",

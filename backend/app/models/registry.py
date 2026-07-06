@@ -1,13 +1,13 @@
 from typing import Type
 from app.models.base import BaseAIModel
-from app.models.implementations import BLIP2Model, CLIPModel, IndicTrans2Model, XTTSModel
+from app.models.implementations import BLIP2Model, BLIPBaseModel, CLIPModel, IndicTrans2Model, XTTSModel
 
 # The registry maps internal identifiers to concrete model classes.
 # This makes it trivial to swap out models without changing orchestration logic.
 
 CAPTION_MODELS = {
     "blip2-opt-2.7b": BLIP2Model,
-    # "blip-base": BLIPBaseModel, # Example for future fallback
+    "blip-image-captioning-base": BLIPBaseModel,
     # "florence-2": Florence2Model
 }
 

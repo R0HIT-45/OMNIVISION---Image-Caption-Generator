@@ -1,7 +1,7 @@
 import io
 from PIL import Image
 from fastapi import UploadFile
-from app.exceptions.handlers import ValidationException
+from app.exceptions.handlers import ValidationException, UnsupportedMediaTypeException
 import logging
 
 logger = logging.getLogger("omnivision")
@@ -16,7 +16,7 @@ class ImageService:
         
         # 1. Content-Type Validation
         if file.content_type not in self.allowed_types:
-            raise ValidationException("Invalid file format. Only JPG and PNG are supported.")
+            raise UnsupportedMediaTypeException("Invalid file format. Only JPG and PNG are supported.")
             
         # 2. Read File Bytes
         file_bytes = await file.read()

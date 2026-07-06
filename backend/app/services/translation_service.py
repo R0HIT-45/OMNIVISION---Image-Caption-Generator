@@ -2,7 +2,7 @@ import logging
 import torch
 from typing import Dict
 from app.managers.model_manager import get_model_manager
-from app.exceptions.handlers import NonCriticalAIException
+from app.exceptions.handlers import TranslationException
 
 logger = logging.getLogger("omnivision")
 
@@ -57,4 +57,4 @@ class TranslationService:
         except Exception as e:
             logger.error(f"Translation failed: {str(e)}")
             # Translation is non-critical, we don't want to crash the whole request
-            raise NonCriticalAIException(f"Translation failed: {str(e)}")
+            raise TranslationException(f"Translation failed: {str(e)}")

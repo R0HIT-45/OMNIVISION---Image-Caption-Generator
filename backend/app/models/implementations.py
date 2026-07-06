@@ -42,6 +42,24 @@ class BLIP2Model(BaseCaptionModel):
         # using the raw components for now, to minimize refactoring risk.
         pass
 
+class BLIPBaseModel(BaseCaptionModel):
+    def __init__(self):
+        self.processor = None
+        self.model = None
+        
+    def load(self, device: str) -> None:
+        logger.info(f"Loading BLIP Base model: {settings.BLIP_MODEL}")
+        from transformers import BlipProcessor, BlipForConditionalGeneration
+        
+        self.processor = BlipProcessor.from_pretrained(settings.BLIP_MODEL)
+        self.model = BlipForConditionalGeneration.from_pretrained(settings.BLIP_MODEL).to(device)
+            
+    def get_components(self) -> Dict[str, Any]:
+        return {"processor": self.processor, "model": self.model}
+
+    def generate(self, image: Any, detailed: bool = False) -> str:
+        pass
+
 class CLIPModel(BaseEmbeddingModel):
     def __init__(self):
         self.processor = None

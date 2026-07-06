@@ -12,7 +12,7 @@ class CaptionService:
 
     def generate(self, image: Image.Image, detailed: bool = False) -> str:
         try:
-            logger.info("Generating visual caption using BLIP-2...")
+            logger.info("Generating visual caption using Vision Model...")
             blip_bundle = self.model_manager.get_model("blip")
             processor = blip_bundle["processor"]
             model = blip_bundle["model"]

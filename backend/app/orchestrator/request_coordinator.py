@@ -12,7 +12,7 @@ from app.services.grounding_service import GroundingService
 from app.services.translation_service import TranslationService
 from app.services.tts_service import TTSService
 from app.orchestrator.response_builder import ResponseBuilder
-from app.exceptions.handlers import CriticalAIException, NonCriticalAIException
+from app.exceptions.handlers import CriticalAIException, TranslationException, TTSException, OmniVisionException
 
 logger = logging.getLogger("omnivision")
 
@@ -63,7 +63,7 @@ class RequestCoordinator:
             try:
                 translations = self.translation_service.translate(ctx.final_caption)
                 ctx.translations = translations
-            except NonCriticalAIException as e:
+            except TranslationException as e:
                 logger.warning(f"Translation step failed, skipping. {e}")
             ctx.translation_time = time.time() - t0
                 
@@ -75,18 +75,19 @@ class RequestCoordinator:
             try:
                 audio_paths = self.tts_service.generate(texts_to_speak, request_id=request_id)
                 ctx.audio_paths = audio_paths
-            except NonCriticalAIException as e:
+            except TTSException as e:
                 logger.warning(f"TTS step failed, skipping. {e}")
             ctx.audio_time = time.time() - t0
                 
             return self.response_builder.build_success(ctx)
             
-        except CriticalAIException as e:
-            logger.error(f"Critical AI failure: {e}", extra={"request_id": request_id, "success": False})
+        except OmniVisionException as e:
+            # Re-raise known API exceptions (Validation, UnsupportedMediaType, etc.)
+            logger.error(f"API Exception in pipeline: {e}", extra={"request_id": request_id, "success": False})
             raise e
         except Exception as e:
             logger.error(f"Unexpected failure in Orchestrator: {e}", extra={"request_id": request_id, "success": False})
-            raise CriticalAIException(f"Pipeline failed: {str(e)}")
+            raise CriticalAIException(f"Pipeline crashed unexpectedly: {str(e)}")
 
 def get_orchestrator() -> RequestCoordinator:
     return RequestCoordinator()

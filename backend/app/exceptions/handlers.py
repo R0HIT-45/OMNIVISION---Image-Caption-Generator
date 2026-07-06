@@ -1,29 +1,55 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
+import logging
 
-class OmniVisionBaseException(Exception):
+logger = logging.getLogger("omnivision")
+
+class OmniVisionException(Exception):
     """Base exception for all OmniVision errors."""
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
 
-class CriticalAIException(OmniVisionBaseException):
-    """Raised when a core AI model fails critically (e.g., OOM, failed to load)."""
+class ValidationException(OmniVisionException):
+    """Raised for invalid input (HTTP 400)."""
     pass
 
-class NonCriticalAIException(OmniVisionBaseException):
-    """Raised when a non-critical AI model fails (e.g., Translation timeout)."""
+class UnsupportedMediaTypeException(OmniVisionException):
+    """Raised when file format is not supported (HTTP 415)."""
     pass
 
-class ValidationException(OmniVisionBaseException):
-    """Raised for invalid input files or payloads."""
+class ModelLoadException(OmniVisionException):
+    """Raised when an AI model fails to load or runs out of memory (HTTP 503)."""
     pass
 
-async def omnivision_exception_handler(request: Request, exc: OmniVisionBaseException):
-    if isinstance(exc, CriticalAIException):
+class RetrievalException(OmniVisionException):
+    """Raised when the FAISS retrieval pipeline fails (HTTP 500)."""
+    pass
+
+class TranslationException(OmniVisionException):
+    """Raised when the IndicTrans2 translation fails (HTTP 500)."""
+    pass
+
+class TTSException(OmniVisionException):
+    """Raised when the XTTS audio synthesis fails (HTTP 500)."""
+    pass
+
+class CriticalAIException(OmniVisionException):
+    """Raised for general critical AI failures (HTTP 500)."""
+    pass
+
+async def omnivision_exception_handler(request: Request, exc: OmniVisionException):
+    # Log the exception explicitly before responding
+    logger.error(f"API Exception: {exc.__class__.__name__} - {exc.message}")
+    
+    if isinstance(exc, ValidationException):
+        status_code = 400
+    elif isinstance(exc, UnsupportedMediaTypeException):
+        status_code = 415
+    elif isinstance(exc, ModelLoadException):
+        status_code = 503
+    elif isinstance(exc, (RetrievalException, TranslationException, TTSException, CriticalAIException)):
         status_code = 500
-    elif isinstance(exc, ValidationException):
-        status_code = 422
     else:
         status_code = 500
 
@@ -36,4 +62,4 @@ async def omnivision_exception_handler(request: Request, exc: OmniVisionBaseExce
     )
 
 def register_exception_handlers(app):
-    app.add_exception_handler(OmniVisionBaseException, omnivision_exception_handler)
+    app.add_exception_handler(OmniVisionException, omnivision_exception_handler)

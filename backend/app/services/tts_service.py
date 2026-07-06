@@ -3,7 +3,7 @@ import logging
 import torch
 from typing import Dict
 from app.managers.model_manager import get_model_manager
-from app.exceptions.handlers import NonCriticalAIException
+from app.exceptions.handlers import TTSException
 from app.config.settings import get_settings
 
 logger = logging.getLogger("omnivision")
@@ -66,4 +66,4 @@ class TTSService:
             
         except Exception as e:
             logger.error(f"TTS failed: {str(e)}")
-            raise NonCriticalAIException(f"TTS failed: {str(e)}")
+            raise TTSException(f"TTS failed: {str(e)}")
