@@ -1,9 +1,12 @@
-import os
-import torch
 import logging
-from app.config.settings import get_settings
+import os
+
+import torch
+
+from backend.app.config.settings import get_settings
 
 logger = logging.getLogger("omnivision.startup")
+
 
 def validate_configuration():
     """Validates the system configuration on FastAPI startup. Fails fast if invalid."""
@@ -25,18 +28,23 @@ def validate_configuration():
     # 3. CUDA Validation (Crucial for Demo/Production profiles)
     cuda_available = torch.cuda.is_available()
     if settings.PROFILE in ["demo", "production"] and not cuda_available:
-        logger.warning(f"PROFILE is '{settings.PROFILE}' but CUDA is not available! The system will attempt to fall back to CPU, which may crash or be extremely slow.")
-    
+        logger.warning(
+            f"PROFILE is '{settings.PROFILE}' but CUDA is not available! The system will attempt to fall back to CPU, which may crash or be extremely slow."
+        )
+
     # 4. Threshold Validation
     if not (0.0 <= settings.GROUNDING_SIMILARITY_THRESHOLD <= 1.0):
-        raise ValueError(f"GROUNDING_SIMILARITY_THRESHOLD must be between 0.0 and 1.0. Found: {settings.GROUNDING_SIMILARITY_THRESHOLD}")
+        raise ValueError(
+            f"GROUNDING_SIMILARITY_THRESHOLD must be between 0.0 and 1.0. Found: {settings.GROUNDING_SIMILARITY_THRESHOLD}"
+        )
 
     # 5. Knowledge Pack Validation
     for pack in settings.ACTIVE_KNOWLEDGE_PACKS:
         pack_path = os.path.join(settings.KNOWLEDGE_BASE_DIR, pack, "index.faiss")
         if not os.path.exists(pack_path):
-            logger.error(f"Knowledge Pack Error: Application Startup Failed. Active pack '{pack}' is missing its index.faiss file at {pack_path}.")
+            logger.error(
+                f"Knowledge Pack Error: Application Startup Failed. Active pack '{pack}' is missing its index.faiss file at {pack_path}."
+            )
             raise ValueError(f"Missing required Knowledge Pack: {pack}")
 
     logger.info("Configuration validation completed successfully.")
-

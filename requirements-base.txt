@@ -1,0 +1,40 @@
+# ============================================================
+# OmniVision v1.0 — Base Requirements (CPU-compatible)
+# ============================================================
+# Install: pip install -r requirements-base.txt
+#
+# For CUDA support, install PyTorch separately AFTER this file:
+#   pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+# See requirements-cuda.txt for exact commands.
+# ============================================================
+
+# === Core Framework ===
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+
+# === Frontend ===
+streamlit==1.29.0
+requests==2.31.0
+
+# === AI Runtime (CPU versions — override with CUDA install) ===
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+transformers==4.36.2
+accelerate==0.25.0
+bitsandbytes==0.41.3
+sentencepiece==0.1.99
+numpy==1.26.2
+
+# === Vector Search ===
+faiss-cpu==1.7.4
+
+# === TTS ===
+coqui-tts==1.7.1
+soundfile==0.12.1
+
+# === Utilities ===
+pillow==10.1.0

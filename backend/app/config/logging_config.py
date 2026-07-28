@@ -1,30 +1,37 @@
 import json
 import logging
+import logging.config
+
 
 class JSONFormatter(logging.Formatter):
     """Custom JSON formatter for structured logging."""
+
     def format(self, record):
         log_obj = {
             "timestamp": self.formatTime(record, self.datefmt),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage()
+            "message": record.getMessage(),
         }
-        
-        # Add extra fields if they exist
-        if hasattr(record, "request_id"):
-            log_obj["request_id"] = record.request_id
-        if hasattr(record, "phase"):
-            log_obj["phase"] = record.phase
-        if hasattr(record, "latency_ms"):
-            log_obj["latency_ms"] = record.latency_ms
-        if hasattr(record, "success"):
-            log_obj["success"] = record.success
-            
+
+        # Add structured fields if they exist
+        for field in (
+            "request_id",
+            "pipeline_stage",
+            "phase",
+            "latency_ms",
+            "success",
+            "model",
+            "profile",
+        ):
+            if hasattr(record, field):
+                log_obj[field] = getattr(record, field)
+
         if record.exc_info:
             log_obj["exception"] = self.formatException(record.exc_info)
-            
+
         return json.dumps(log_obj)
+
 
 LOGGING_CONFIG = {
     "version": 1,
@@ -56,6 +63,7 @@ LOGGING_CONFIG = {
         },
     },
 }
+
 
 def setup_logging():
     logging.config.dictConfig(LOGGING_CONFIG)

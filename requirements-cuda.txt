@@ -1,0 +1,24 @@
+# ============================================================
+# OmniVision v1.0 — CUDA Installation Guide
+# ============================================================
+# Run these commands IN ORDER after installing Python 3.11:
+#
+# Step 1: Create virtual environment
+#   python -m venv venv
+#   .\venv\Scripts\activate          (Windows)
+#   source venv/bin/activate          (Linux/Mac)
+#
+# Step 2: Install CUDA-enabled PyTorch FIRST
+#   pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 torchaudio==2.1.2+cu118 --index-url https://download.pytorch.org/whl/cu118
+#
+# Step 3: Install remaining dependencies
+#   pip install -r requirements-base.txt
+#
+# ============================================================
+# Expected VRAM Usage (RTX 3050 6GB):
+#   BLIP Base (development):  ~900 MB
+#   BLIP-2 4-bit (demo):     ~1.8 GB
+#   CLIP:                     ~500 MB
+#   XTTS v2:                  ~2.0 GB
+#   Peak (with swap):         ~2.8 GB
+# ============================================================

@@ -1,9 +1,8 @@
 FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
 
-# Set working directory
 WORKDIR /app
 
-# Install Python and dependencies
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     python3.10 \
     python3-pip \
@@ -11,16 +10,20 @@ RUN apt-get update && apt-get install -y \
     libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install
-COPY requirements.txt .
-RUN pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-RUN pip3 install -r requirements.txt
+# Install CUDA-enabled PyTorch first (cached layer)
+RUN pip3 install torch==2.1.2+cu118 torchvision==0.16.2+cu118 torchaudio==2.1.2+cu118 --index-url https://download.pytorch.org/whl/cu118
 
-# Copy application code
+# Install Python dependencies
+COPY requirements-base.txt .
+RUN pip3 install -r requirements-base.txt
+
+# Copy entire project
 COPY . .
 
-# Expose API port
+# Ensure directories exist
+RUN mkdir -p static/uploads static/audio knowledge_base
+
 EXPOSE 8000
 
-# Start FastAPI server
+# Run from project root
 CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]

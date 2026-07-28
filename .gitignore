@@ -44,6 +44,23 @@ knowledge_base/**/index.faiss
 .cache/
 hf_cache/
 
+# Logs
+*.log
+*.log.*
+
+# Coverage
+.coverage
+.coverage.*
+
+# Cache dirs
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Artifacts
+archive/
+screenshot.png
+
 # IDEs
 .vscode/
 .idea/
