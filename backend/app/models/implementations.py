@@ -59,6 +59,7 @@ class BLIPBaseModel(BaseCaptionModel):
 
         self.processor = BlipProcessor.from_pretrained(settings.BLIP_MODEL)
         self.model = BlipForConditionalGeneration.from_pretrained(settings.BLIP_MODEL).to(device)
+        self.model.eval()
 
     def get_components(self) -> Dict[str, Any]:
         return {"processor": self.processor, "model": self.model}

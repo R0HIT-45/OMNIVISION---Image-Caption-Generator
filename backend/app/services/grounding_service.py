@@ -53,7 +53,7 @@ class GroundingService:
             result["confidenceLabel"] = "Medium"
             result["reason"] = f"Moderate match found ({score:.2f})."
             result["final_caption"] = f"{raw_caption} Context: {fact}"
-            result["grounding_applied"] = True
+            result["grounding_applied"] = True if score >= self.threshold else False
         elif score >= 0.4:
             logger.info(f"Confidence LOW ({score:.3f}). Skipping grounding.")
             result["confidenceLabel"] = "Low"

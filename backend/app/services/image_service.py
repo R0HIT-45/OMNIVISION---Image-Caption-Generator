@@ -8,6 +8,8 @@ from backend.app.exceptions.handlers import UnsupportedMediaTypeException, Valid
 
 logger = logging.getLogger("omnivision")
 
+MAX_PIXELS = 50_000_000  # 50 megapixel sanity limit
+
 
 class ImageService:
     def __init__(self):
@@ -28,9 +30,18 @@ class ImageService:
             raise ValidationException("File size exceeds the 12MB limit.")
 
         try:
+            # Verify image header before full decode (decompression bomb protection)
+            with Image.open(io.BytesIO(file_bytes)) as verify_img:
+                verify_img.verify()
             image = Image.open(io.BytesIO(file_bytes))
             if image.mode != "RGB":
                 image = image.convert("RGB")
+
+            w, h = image.size
+            if w * h > MAX_PIXELS:
+                raise ValidationException(
+                    f"Image dimensions ({w}x{h}) exceed the {MAX_PIXELS:,} pixel limit."
+                )
 
             max_dim = 1024
             if max(image.size) > max_dim:
@@ -38,6 +49,8 @@ class ImageService:
 
             logger.debug(f"Image preprocessed. Final size: {image.size}")
             return image
+        except ValidationException:
+            raise
         except Exception as e:
             logger.error(f"Failed to process image: {str(e)}")
             raise ValidationException("Corrupted or invalid image file.")

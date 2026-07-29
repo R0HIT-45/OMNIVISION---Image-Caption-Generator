@@ -28,10 +28,10 @@ class TestProcessingContext:
     def test_timing_fields(self):
         """Context tracks per-stage timing."""
         ctx = ProcessingContext(request_id="test-123")
-        ctx.vision_time = 1.5
+        ctx.caption_time = 1.5
         ctx.retrieval_time = 0.1
 
-        assert ctx.vision_time == 1.5
+        assert ctx.caption_time == 1.5
         assert ctx.retrieval_time == 0.1
 
 

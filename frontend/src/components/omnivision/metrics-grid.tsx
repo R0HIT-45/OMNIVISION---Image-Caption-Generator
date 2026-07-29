@@ -27,7 +27,7 @@ export function MetricsGrid({ result }: MetricsProps) {
   return (
     <section id="metrics" aria-labelledby="metrics-title" className="border-b border-border">
       <div className="py-14">
-        <div className="max-w-2xl">
+        <div className="max-w-4xl">
           <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-subtle">
             Performance
           </p>

@@ -18,6 +18,12 @@ from backend.app.services.image_service import ImageService
 from backend.app.services.retrieval_service import RetrievalService
 from backend.app.services.translation_service import TranslationService
 from backend.app.services.tts_service import TTSService
+from backend.app.services.output_validator import (
+    validate_audio_paths,
+    validate_caption,
+    validate_embedding,
+    validate_translations,
+)
 
 logger = logging.getLogger("omnivision")
 
@@ -96,6 +102,10 @@ class RequestCoordinator:
                 pil_image, detailed=True, request_id=request_id
             )
             ctx.caption_time = time.time() - t0
+            caption_err = validate_caption(ctx.raw_caption)
+            if caption_err:
+                logger.warning(f"Caption quality: {caption_err}", extra={"request_id": request_id, "pipeline_stage": "caption"})
+                ctx.stage_errors.append(StageError(stage="caption", reason=caption_err))
 
             # 2b. Embedding generation
             t0 = time.time()
@@ -103,6 +113,10 @@ class RequestCoordinator:
                 pil_image, request_id=request_id
             )
             ctx.embedding_time = time.time() - t0
+            embedding_err = validate_embedding(ctx.embedding)
+            if embedding_err:
+                logger.warning(f"Embedding quality: {embedding_err}", extra={"request_id": request_id, "pipeline_stage": "embedding"})
+                ctx.stage_errors.append(StageError(stage="embedding", reason=embedding_err))
 
             # 3. Retrieval
             t0 = time.time()
@@ -158,6 +172,28 @@ class RequestCoordinator:
                 ctx.stage_errors.append(StageError(stage="speech", reason=str(e)))
             ctx.audio_time = time.time() - t0
 
+            trn_errors = validate_translations(ctx.translations)
+            for err in trn_errors:
+                ctx.stage_errors.append(StageError(stage="translation", reason=err))
+            audio_errors = validate_audio_paths(ctx.audio_paths)
+            for err in audio_errors:
+                ctx.stage_errors.append(StageError(stage="speech", reason=err))
+
+            logger.info(
+                "Pipeline completed",
+                extra={
+                    "request_id": request_id,
+                    "pipeline_stage": "complete",
+                    "caption_len": len(ctx.raw_caption or ""),
+                    "embedding_dim": len(ctx.embedding) if ctx.embedding else 0,
+                    "retrieved_count": len(ctx.retrieved_entries),
+                    "grounding_applied": ctx.grounding_applied,
+                    "translations": list(ctx.translations.keys()),
+                    "audio_langs": list(ctx.audio_paths.keys()),
+                    "stage_errors": len(ctx.stage_errors),
+                    "total_time_ms": round((time.time() - ctx.start_time) * 1000, 2),
+                },
+            )
             return self.response_builder.build_success(ctx)
 
         except OmniVisionException as e:

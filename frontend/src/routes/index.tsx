@@ -103,7 +103,7 @@ function Index() {
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-[110rem] px-6 lg:px-10 xl:px-16">
+      <main className="mx-auto w-full max-w-7xl px-6 lg:px-10 xl:px-16">
         <UploadHero
           file={file}
           previewUrl={previewUrl}

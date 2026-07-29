@@ -11,7 +11,7 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/80 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 w-full max-w-[110rem] items-center gap-4 px-6 lg:px-10 xl:px-16">
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-4 px-6 lg:px-10 xl:px-16">
         <a href="/" className="flex min-w-0 items-center gap-3" aria-label="OmniVision home">
           <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary">
             <svg viewBox="0 0 24 24" className="size-4" aria-hidden="true">

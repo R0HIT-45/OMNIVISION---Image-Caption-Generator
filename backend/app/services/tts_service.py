@@ -18,7 +18,6 @@ class TTSService:
         self.lang_codes = {
             "english": "en",
             "hindi": "hi",
-            "telugu": "te",  # Note: check if XTTS v2 officially supports te. If not, might fallback or skip.
         }
 
         # XTTS requires a speaker reference wav file to clone the voice.

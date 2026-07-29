@@ -55,7 +55,7 @@ export function PipelineView({ result }: PipelineViewProps) {
   return (
     <section id="pipeline" aria-labelledby="pipeline-title" className="border-b border-border">
       <div className="py-14">
-        <div className="max-w-3xl">
+        <div className="max-w-4xl">
           <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-subtle">
             Explainability
           </p>

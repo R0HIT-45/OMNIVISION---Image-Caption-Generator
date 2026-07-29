@@ -9,30 +9,15 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from backend.app.main import app
 
 client = TestClient(app)
 
-# Minimal valid JPEG bytes for testing
-_VALID_JPEG = (
-    b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
-    b"\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\x0c"
-    b"\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e\x1d\x1a\x1c"
-    b"\x1c $.\' \",#\x1c\x1c(7),01444\x1f\'9=82<.342\xff\xc0\x00\x0b\x08"
-    b"\x00\x01\x00\x01\x01\x01\x11\x00\xff\xc4\x00\x1f\x00\x00\x01\x05\x01"
-    b"\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03"
-    b"\x04\x05\x06\x07\x08\t\n\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03"
-    b"\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01}\x01\x02\x03\x00\x04\x11\x05"
-    b"\x12!1A\x06\x13Qa\x07\"q\x142\x81\x91\xa1\x08#B\xb1\xc1\x15R\xd1\xf0"
-    b"\x24\x33\x62\xf2\x82\t\n\x16\x17\x18\x19\x1a%&\'()*456789:CDEFGHIJ"
-    b"STUVWXYZcdefghijstuvwxyz\x83\x84\x85\x86\x87\x88\x89\x8a\x92\x93\x94"
-    b"\x95\x96\x97\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xb2\xb3"
-    b"\xb4\xb5\xb6\xb7\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xd2"
-    b"\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9"
-    b"\xea\xf1\xf2\xf3\xf4\xf5\xf6\xf7\xf8\xf9\xfa\xff\xda\x00\x08\x01\x01"
-    b"\x00\x00?\x00\xfb\xd5\xff\xd9"
-)
+_VALID_JPEG = BytesIO()
+Image.new("RGB", (1, 1), color="red").save(_VALID_JPEG, "JPEG")
+_VALID_JPEG = _VALID_JPEG.getvalue()
 
 
 def test_health_endpoint():
@@ -62,66 +47,65 @@ def test_process_image_rejects_invalid_type():
     assert response.status_code in [400, 415]
 
 
-@patch("backend.app.orchestrator.request_coordinator.CaptionService")
-@patch("backend.app.orchestrator.request_coordinator.EmbeddingService")
-@patch("backend.app.orchestrator.request_coordinator.RetrievalService")
-@patch("backend.app.orchestrator.request_coordinator.GroundingService")
-@patch("backend.app.orchestrator.request_coordinator.TranslationService")
-@patch("backend.app.orchestrator.request_coordinator.TTSService")
-def test_process_image_full_pipeline(
-    mock_tts, mock_translation, mock_grounding,
-    mock_retrieval, mock_embedding, mock_caption,
-):
+def test_process_image_full_pipeline():
     """Full pipeline returns complete OmniVisionResponse."""
-    # Mock image service to return a PIL image
-    mock_image_instance = MagicMock()
-    mock_image_instance.validate_and_preprocess = AsyncMock(return_value=MagicMock())
+    import backend.app.orchestrator.request_coordinator as rc_mod
 
-    # Mock caption service
-    mock_caption_instance = MagicMock()
-    mock_caption_instance.generate.return_value = "A photo of the Taj Mahal"
-    mock_caption.return_value = mock_caption_instance
+    # Reset singleton so new coordinator uses mocked services
+    rc_mod._coordinator = None
+    coordinator_module = "backend.app.orchestrator.request_coordinator"
 
-    # Mock embedding service
-    mock_embedding_instance = MagicMock()
-    mock_embedding_instance.generate_embedding.return_value = [0.1] * 512
-    mock_embedding.return_value = mock_embedding_instance
+    with (
+        patch(f"{coordinator_module}.CaptionService") as mock_caption_cls,
+        patch(f"{coordinator_module}.EmbeddingService") as mock_embedding_cls,
+        patch(f"{coordinator_module}.RetrievalService") as mock_retrieval_cls,
+        patch(f"{coordinator_module}.GroundingService") as mock_grounding_cls,
+        patch(f"{coordinator_module}.TranslationService") as mock_translation_cls,
+        patch(f"{coordinator_module}.TTSService") as mock_tts_cls,
+        patch(f"{coordinator_module}.ImageService") as mock_image_cls,
+    ):
+        mock_image_inst = MagicMock()
+        mock_image_inst.validate_and_preprocess = AsyncMock(return_value=MagicMock())
+        mock_image_cls.return_value = mock_image_inst
 
-    # Mock retrieval service
-    mock_retrieval_instance = MagicMock()
-    mock_retrieval_instance.search.return_value = [
-        {"entity": "Taj Mahal", "fact": "Built in 1632 by Shah Jahan", "score": 0.85}
-    ]
-    mock_retrieval.return_value = mock_retrieval_instance
+        mock_caption_inst = MagicMock()
+        mock_caption_inst.generate.return_value = "A photo of the Taj Mahal"
+        mock_caption_cls.return_value = mock_caption_inst
 
-    # Mock grounding service
-    mock_grounding_instance = MagicMock()
-    mock_grounding_instance.evaluate_and_ground.return_value = {
-        "final_caption": "A photo of the Taj Mahal Context: Built in 1632 by Shah Jahan",
-        "grounding_applied": True,
-        "top_entity": "Taj Mahal",
-        "top_fact": "Built in 1632 by Shah Jahan",
-        "top_score": 0.85,
-    }
-    mock_grounding.return_value = mock_grounding_instance
+        mock_embedding_inst = MagicMock()
+        mock_embedding_inst.generate_embedding.return_value = [0.1] * 512
+        mock_embedding_cls.return_value = mock_embedding_inst
 
-    # Mock translation service
-    mock_translation_instance = MagicMock()
-    mock_translation_instance.translate.return_value = {
-        "hindi": "ताज महल की एक तस्वीर",
-        "telugu": "తాజ్ మహల్ యొక్క ఫోటో",
-    }
-    mock_translation.return_value = mock_translation_instance
+        mock_retrieval_inst = MagicMock()
+        mock_retrieval_inst.search.return_value = [
+            {"entity": "Taj Mahal", "fact": "Built in 1632 by Shah Jahan", "score": 0.85}
+        ]
+        mock_retrieval_cls.return_value = mock_retrieval_inst
 
-    # Mock TTS service
-    mock_tts_instance = MagicMock()
-    mock_tts_instance.generate.return_value = {
-        "english": "/static/audio/test_en.wav",
-        "hindi": "/static/audio/test_hi.wav",
-    }
-    mock_tts.return_value = mock_tts_instance
+        mock_grounding_inst = MagicMock()
+        mock_grounding_inst.evaluate_and_ground.return_value = {
+            "final_caption": "A photo of the Taj Mahal Context: Built in 1632 by Shah Jahan",
+            "grounding_applied": True,
+            "top_entity": "Taj Mahal",
+            "top_fact": "Built in 1632 by Shah Jahan",
+            "top_score": 0.85,
+        }
+        mock_grounding_cls.return_value = mock_grounding_inst
 
-    with patch("backend.app.orchestrator.request_coordinator.ImageService", return_value=mock_image_instance):
+        mock_translation_inst = MagicMock()
+        mock_translation_inst.translate.return_value = {
+            "hindi": "ताज महल की एक तस्वीर",
+            "telugu": "తాజ్ మహల్ యొక్క ఫోటో",
+        }
+        mock_translation_cls.return_value = mock_translation_inst
+
+        mock_tts_inst = MagicMock()
+        mock_tts_inst.generate.return_value = {
+            "english": "/static/audio/test_en.wav",
+            "hindi": "/static/audio/test_hi.wav",
+        }
+        mock_tts_cls.return_value = mock_tts_inst
+
         response = client.post(
             "/api/v1/process-image",
             files={"file": ("taj_mahal.jpg", BytesIO(_VALID_JPEG), "image/jpeg")},

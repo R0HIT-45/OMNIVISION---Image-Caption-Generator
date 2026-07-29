@@ -15,17 +15,12 @@ class Settings(BaseSettings):
     # AI Config
     @property
     def BLIP_MODEL(self) -> str:
-        # User-overridden config
-        if os.getenv("BLIP_MODEL"):
-            return os.getenv("BLIP_MODEL")
-        # Profile-based defaults
         if self.PROFILE == "development":
             return "Salesforce/blip-image-captioning-base"
-        elif self.PROFILE == "demo":
+        elif self.PROFILE in ["demo", "production"]:
             return "Salesforce/blip2-opt-2.7b"
-        elif self.PROFILE == "production":
-            return "Salesforce/blip2-opt-2.7b"  # Placeholder for future models
-        return "Salesforce/blip-image-captioning-base"
+        else:
+            return "Salesforce/blip-image-captioning-base"
 
     CLIP_MODEL: str = os.getenv("CLIP_MODEL", "openai/clip-vit-base-patch32")
     TRANSLATION_MODEL: str = os.getenv("TRANSLATION_MODEL", "facebook/nllb-200-distilled-600M")

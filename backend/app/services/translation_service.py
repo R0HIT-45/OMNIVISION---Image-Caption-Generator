@@ -13,7 +13,7 @@ class TranslationService:
     def __init__(self):
         self.model_manager = get_model_manager()
         # NLLB specific language codes
-        self.lang_codes = {"hindi": "hin_Deva", "telugu": "tel_Telu"}
+        self.lang_codes = {"hindi": "hin_Deva"}
 
     def warm_up(self):
         self.model_manager.get_model("translation")
@@ -37,12 +37,9 @@ class TranslationService:
 
                 generated_tokens = model.generate(
                     **inputs,
-                    forced_bos_token_id=(
-                        tokenizer.lang_code_to_id[code]
-                        if hasattr(tokenizer, "lang_code_to_id")
-                        else None
-                    ),
-                    max_length=256,
+                    forced_bos_token_id=tokenizer.convert_tokens_to_ids(code),
+                    max_length=64,
+                    early_stopping=True,
                 )
 
                 translated_text = tokenizer.batch_decode(

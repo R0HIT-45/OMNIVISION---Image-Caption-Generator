@@ -19,7 +19,7 @@ export function Diagnostics() {
     <section id="diagnostics" aria-labelledby="diagnostics-title" className="border-b border-border">
       <div className="py-14">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,560px)]">
-          <div className="max-w-2xl">
+          <div className="max-w-4xl">
             <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-subtle">
               Diagnostics
             </p>

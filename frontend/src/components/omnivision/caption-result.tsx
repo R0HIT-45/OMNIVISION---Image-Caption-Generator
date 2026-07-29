@@ -9,7 +9,7 @@ interface CaptionResultProps {
 }
 
 export function CaptionResult({ result }: CaptionResultProps) {
-  const { explainability, data, retrieved_entries } = result;
+  const { explainability, data } = result;
   const caption = data.final_caption || data.raw_caption;
 
   const translationEntries = useMemo(
@@ -24,12 +24,6 @@ export function CaptionResult({ result }: CaptionResultProps) {
       ? data.translations[lang]
       : caption;
 
-  const labelColors: Record<string, string> = {
-    High: "border-success/40 bg-success/10 text-success",
-    Medium: "border-amber-500/40 bg-amber-500/10 text-amber-500",
-    Low: "border-orange-500/40 bg-orange-500/10 text-orange-500",
-    Reject: "border-destructive/40 bg-destructive/10 text-destructive",
-  };
   const dotColors: Record<string, string> = {
     High: "bg-success",
     Medium: "bg-amber-500",
@@ -37,9 +31,7 @@ export function CaptionResult({ result }: CaptionResultProps) {
     Reject: "bg-destructive",
   };
 
-  const label = explainability.confidenceLabel ?? "High";
-  const confStyle = labelColors[label] ?? labelColors.High;
-  const dotStyle = dotColors[label] ?? dotColors.High;
+  const dotStyle = dotColors[explainability.confidenceLabel ?? "High"] ?? dotColors.High;
 
   const speak = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
@@ -78,12 +70,6 @@ export function CaptionResult({ result }: CaptionResultProps) {
                 Grounded result
               </h2>
             </div>
-            <span
-              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-[13px] font-medium ${confStyle}`}
-            >
-              <span className={`size-1.5 rounded-full ${dotStyle}`} aria-hidden="true" />
-              {label} confidence
-            </span>
           </div>
 
           <p className="mt-8 text-[26px] font-semibold leading-[1.5] tracking-tight md:text-[30px]">
@@ -105,8 +91,6 @@ export function CaptionResult({ result }: CaptionResultProps) {
           )}
           <p className="mt-3 text-[13px] text-subtle">
             request {result.request_id}
-            {retrieved_entries.length > 0 &&
-              ` · grounded on ${retrieved_entries.length} retrieved passages`}
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -178,29 +162,6 @@ export function CaptionResult({ result }: CaptionResultProps) {
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-
-          {retrieved_entries.length > 0 && (
-            <div className="mt-10 border-t border-border pt-8">
-              <p className="text-[13px] font-medium uppercase tracking-[0.14em] text-subtle">
-                Retrieved evidence
-              </p>
-              <ul className="mt-4 grid gap-3">
-                {retrieved_entries.map((entry, i) => (
-                  <li key={i} className="panel p-6">
-                    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-                      <p className="truncate text-[16px] font-medium">{entry.entity}</p>
-                      <span className="shrink-0 rounded-md border border-border px-2 py-0.5 font-mono text-[13px] text-muted-foreground">
-                        {entry.score.toFixed(3)}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-[15px] leading-relaxed text-muted-foreground">
-                      {entry.fact}
-                    </p>
-                  </li>
-                ))}
-              </ul>
             </div>
           )}
         </div>
