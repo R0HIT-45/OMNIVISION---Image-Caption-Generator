@@ -17,4 +17,4 @@ sentencepiece>=0.1.99
 faiss-cpu>=1.7.4
 
 # Text to Speech
-# TTS>=0.22.0
+TTS>=0.22.0

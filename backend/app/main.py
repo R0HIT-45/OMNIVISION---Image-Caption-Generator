@@ -61,7 +61,7 @@ async def health_check():
 
     cuda_available = torch.cuda.is_available()
     gpu_name = torch.cuda.get_device_name(0) if cuda_available else None
-    gpu_memory = torch.cuda.get_mem_info(0) if cuda_available else None
+    gpu_memory = torch.cuda.mem_get_info(0) if cuda_available else None
 
     kb_dir = settings.KNOWLEDGE_BASE_DIR
     packs_status = {}
